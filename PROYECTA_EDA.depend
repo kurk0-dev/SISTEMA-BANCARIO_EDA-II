@@ -1,7 +1,0 @@
-# depslib dependency file v1.0
-1780891582 source:d:\users\ulima\2026-1\eda2\codeblocks\proyecta_eda\main.cpp
-	<iostream>
-	<fstream>
-	<sstream>
-	<string>
-

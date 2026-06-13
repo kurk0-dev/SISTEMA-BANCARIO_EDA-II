@@ -1,0 +1,25 @@
+# === Artefactos de compilacion (Code::Blocks / C++) ===
+bin/
+obj/
+*.o
+*.obj
+*.exe
+*.out
+*.app
+
+# === Archivos generados por Code::Blocks ===
+# *.depend = dependencias autogeneradas | *.layout = layout del editor (por usuario)
+*.depend
+*.layout
+
+# El archivo de proyecto (*.cbp) SI se versiona, no se ignora.
+
+# === Herramientas locales / IDE ===
+.claude/
+.vscode/
+.idea/
+
+# === Sistema operativo ===
+Thumbs.db
+desktop.ini
+.DS_Store
