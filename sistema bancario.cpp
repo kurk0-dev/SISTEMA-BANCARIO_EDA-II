@@ -89,6 +89,33 @@ public:
         }
         cout << "\n";
     }
+
+    // Elimina un nodo por idTransaccion
+    bool eliminar(const string& id) {
+        if (head == nullptr) return false;
+
+        // Si es el primer nodo
+        if (head->getValue()->idTransaccion == id) {
+            Node* tmp = head;
+            head = head->getNext();
+            delete tmp;
+            return true;
+        }
+
+        // Recorre hasta encontrar el nodo anterior
+        Node* actual = head;
+        while (actual->getNext() != nullptr) {
+            if (actual->getNext()->getValue()->idTransaccion == id) {
+                Node* aEliminar = actual->getNext();
+                actual->setNext(aEliminar->getNext());
+                delete aEliminar;
+                return true;
+            }
+            actual = actual->getNext();
+        }
+        return false; // No encontrado
+    }
+
 };
 
 class hashTable {
@@ -123,6 +150,12 @@ public:
             cout << "Indice " << i << ": ";
             table[i].print();
         }
+    }
+
+    //Calcula el índice hash del ID y manda a realizar la eliminación a la lista enlazada del bucket
+    bool eliminar(const string& id) {
+        int pos = hashFunction(id);
+        return table[pos].eliminar(id);
     }
 };
 
@@ -230,6 +263,165 @@ private:
         return 1 + contarNodos(nodo->izquierda) + contarNodos(nodo->derecha);
     }
 
+    //Eliminaci n
+    // Busca el nodo con el ID
+    RBNode* buscarNodo(RBNode* nodo, const string& id) {
+        if (nodo == nullptr) return nullptr;
+        if (nodo->dato->idTransaccion == id) return nodo;
+
+        RBNode* izq = buscarNodo(nodo->izquierda, id);
+        if (izq != nullptr) return izq;
+        return buscarNodo(nodo->derecha, id);
+    }
+
+    // Encuentra el sucesor inorden (nodo m nimo del sub rbol derecho)
+    RBNode* minimo(RBNode* nodo) {
+        while (nodo->izquierda != nullptr)
+            nodo = nodo->izquierda;
+        return nodo;
+    }
+
+    // Reemplaza un sub rbol
+    void trasplantar(RBNode*& raiz, RBNode* u, RBNode* v) {
+        if (u->padre == nullptr)
+            raiz = v;
+        else if (u == u->padre->izquierda)
+            u->padre->izquierda = v;
+        else
+            u->padre->derecha = v;
+
+        if (v != nullptr)
+            v->padre = u->padre;
+    }
+
+    // Arregla violaciones de color después de eliminar
+    void fixEliminacion(RBNode*& raiz, RBNode* nodo) {
+        while (nodo != raiz && color(nodo) == NEGRO) {
+            if (nodo == nodo->padre->izquierda) {
+                RBNode* hermano = nodo->padre->derecha;
+
+                // Caso 1: hermano es rojo
+                if (color(hermano) == ROJO) {
+                    hermano->color = NEGRO;
+                    nodo->padre->color = ROJO;
+                    rotarIzquierda(raiz, nodo->padre);
+                    hermano = nodo->padre->derecha;
+                }
+
+                // Caso 2: hermano y sus hijos son negros
+                if (color(hermano->izquierda) == NEGRO &&
+                    color(hermano->derecha) == NEGRO) {
+                    hermano->color = ROJO;
+                    nodo = nodo->padre;
+                } else {
+                    // Caso 3: hijo derecho del hermano es negro
+                    if (color(hermano->derecha) == NEGRO) {
+                        if (hermano->izquierda != nullptr)
+                            hermano->izquierda->color = NEGRO;
+                        hermano->color = ROJO;
+                        rotarDerecha(raiz, hermano);
+                        hermano = nodo->padre->derecha;
+                    }
+                    // Caso 4: hijo derecho del hermano es rojo
+                    hermano->color = nodo->padre->color;
+                    nodo->padre->color = NEGRO;
+                    if (hermano->derecha != nullptr)
+                        hermano->derecha->color = NEGRO;
+                    rotarIzquierda(raiz, nodo->padre);
+                    nodo = raiz;
+                }
+            } else {
+                RBNode* hermano = nodo->padre->izquierda;
+
+                // Caso 1: hermano es rojo
+                if (color(hermano) == ROJO) {
+                    hermano->color = NEGRO;
+                    nodo->padre->color = ROJO;
+                    rotarDerecha(raiz, nodo->padre);
+                    hermano = nodo->padre->izquierda;
+                }
+
+                // Caso 2: hermano y sus hijos son negros
+                if (color(hermano->derecha) == NEGRO &&
+                    color(hermano->izquierda) == NEGRO) {
+                    hermano->color = ROJO;
+                    nodo = nodo->padre;
+                } else {
+                    // Caso 3: hijo izquierdo del hermano es negro
+                    if (color(hermano->izquierda) == NEGRO) {
+                        if (hermano->derecha != nullptr)
+                            hermano->derecha->color = NEGRO;
+                        hermano->color = ROJO;
+                        rotarIzquierda(raiz, hermano);
+                        hermano = nodo->padre->izquierda;
+                    }
+                    // Caso 4: hijo izquierdo del hermano es rojo
+                    hermano->color = nodo->padre->color;
+                    nodo->padre->color = NEGRO;
+                    if (hermano->izquierda != nullptr)
+                        hermano->izquierda->color = NEGRO;
+                    rotarDerecha(raiz, nodo->padre);
+                    nodo = raiz;
+                }
+            }
+        }
+        if (nodo != nullptr) nodo->color = NEGRO;
+    }
+
+    // Función auxiliar para obtener el color de un nodo (nullptr es NEGRO)
+    Color color(RBNode* nodo) {
+        return (nodo == nullptr) ? NEGRO : nodo->color;
+    }
+
+    // Elimina recursivamente
+    void eliminarNodo(RBNode*& raiz, const string& id) {
+        RBNode* nodo = buscarNodo(raiz, id);
+        if (nodo == nullptr) return;
+
+        RBNode* nodoAArreglar = nullptr;
+        RBNode* padreAArreglar = nullptr;
+        Color colorOriginal = nodo->color;
+
+        // Caso 1: nodo no tiene hijo izquierdo
+        if (nodo->izquierda == nullptr) {
+            nodoAArreglar = nodo->derecha;
+            padreAArreglar = nodo->padre;
+            trasplantar(raiz, nodo, nodo->derecha);
+        }
+        // Caso 2: nodo no tiene hijo derecho
+        else if (nodo->derecha == nullptr) {
+            nodoAArreglar = nodo->izquierda;
+            padreAArreglar = nodo->padre;
+            trasplantar(raiz, nodo, nodo->izquierda);
+        }
+        // Caso 3: nodo tiene ambos hijos
+        else {
+            RBNode* sucesor = minimo(nodo->derecha);
+            colorOriginal = sucesor->color;
+            nodoAArreglar = sucesor->derecha;
+
+            if (sucesor->padre == nodo) {
+                padreAArreglar = sucesor;
+            } else {
+                padreAArreglar = sucesor->padre;
+                trasplantar(raiz, sucesor, sucesor->derecha);
+                sucesor->derecha = nodo->derecha;
+                sucesor->derecha->padre = sucesor;
+            }
+            trasplantar(raiz, nodo, sucesor);
+            sucesor->izquierda = nodo->izquierda;
+            sucesor->izquierda->padre = sucesor;
+            sucesor->color = nodo->color;
+        }
+
+        delete nodo;
+
+        // Rebalancear si se eliminó un nodo negro
+        if (colorOriginal == NEGRO && nodoAArreglar != nullptr) {
+            fixEliminacion(raiz, nodoAArreglar);
+        }
+    }
+
 public:
     RedBlackTree() { raiz = nullptr; }
 
@@ -241,6 +433,14 @@ public:
 
     void mostrarInorden() { inorden(raiz); }
     int  totalNodos()     { return contarNodos(raiz); }
+
+    //Eliminar por id del arbol
+    bool eliminar(const string& id) {
+        RBNode* nodo = buscarNodo(raiz, id);
+        if (nodo == nullptr) return false;
+        eliminarNodo(raiz, id);
+        return true;
+    }
 };
 
 int cargarCSV(const string& nombreArchivo,
@@ -308,6 +508,21 @@ void buscarPorID(hashTable& hash, const string& id) {
     cout << "--------------------------------\n";
 }
 
+void EliminarPorID(hashTable& hash, RedBlackTree& arbol, const string& id){
+    cout << "\n--- Eliminando " << id << " ---\n";
+
+    if (hash.eliminar(id) && arbol.eliminar(id)) {
+        cout << "[EXITO] Transaccion eliminada de ambas estructuras\n";
+    } else {
+        cout << "[ERROR] No se pudo eliminar\n";
+    }
+
+    cout << "\nVerificando que ya no existe:\n";
+    buscarPorID(hash, id);
+
+    cout << "Total de nodos en RBT despues: " << arbol.totalNodos() << "\n";
+}
+
 int main() {
 
     hashTable    hash(30011);   // primo cercano a 10,000
@@ -326,6 +541,12 @@ int main() {
     buscarPorID(hash, "TX-005000");   // transaccion intermedia
     buscarPorID(hash, "TX-010000");   // ultima transaccion
     buscarPorID(hash, "TX-030000");   // ID inexistente
+
+    cout << "========================================\n"
+         << " ESCENARIO 7: Eliminacion\n"
+         << "========================================\n";
+
+    EliminarPorID(hash, arbol, "TX-000001");//Eliminar primera transacción
 
     return 0;
 }
