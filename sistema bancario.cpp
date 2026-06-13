@@ -67,7 +67,7 @@ public:
         tmp->setNext(nodito);
     }
 
-    // Busca por idTransaccion — recorre la cadena del bucket
+    // Busca por idTransaccion ï¿½ recorre la cadena del bucket
     Transaccion* buscar(const string& id) {
         Node* tmp = head;
         while (tmp != nullptr) {
@@ -152,7 +152,7 @@ public:
         }
     }
 
-    //Calcula el índice hash del ID y manda a realizar la eliminación a la lista enlazada del bucket
+    //Calcula el ï¿½ndice hash del ID y manda a realizar la eliminaciï¿½n a la lista enlazada del bucket
     bool eliminar(const string& id) {
         int pos = hashFunction(id);
         return table[pos].eliminar(id);
@@ -294,7 +294,7 @@ private:
             v->padre = u->padre;
     }
 
-    // Arregla violaciones de color después de eliminar
+    // Arregla violaciones de color despuï¿½s de eliminar
     void fixEliminacion(RBNode*& raiz, RBNode* nodo) {
         while (nodo != raiz && color(nodo) == NEGRO) {
             if (nodo == nodo->padre->izquierda) {
@@ -368,7 +368,7 @@ private:
         if (nodo != nullptr) nodo->color = NEGRO;
     }
 
-    // Función auxiliar para obtener el color de un nodo (nullptr es NEGRO)
+    // Funciï¿½n auxiliar para obtener el color de un nodo (nullptr es NEGRO)
     Color color(RBNode* nodo) {
         return (nodo == nullptr) ? NEGRO : nodo->color;
     }
@@ -416,7 +416,7 @@ private:
 
         delete nodo;
 
-        // Rebalancear si se eliminó un nodo negro
+        // Rebalancear si se eliminï¿½ un nodo negro
         if (colorOriginal == NEGRO && nodoAArreglar != nullptr) {
             fixEliminacion(raiz, nodoAArreglar);
         }
@@ -496,16 +496,32 @@ int cargarCSV(const string& nombreArchivo,
     return cargadas;
 }
 
-void buscarPorID(hashTable& hash, const string& id) {
+bool buscarPorID(hashTable& hash, const string& id) {
     cout << "\n--- Buscando ID: " << id << " ---\n";
     Transaccion* t = hash.buscar(id);
     if (t != nullptr) {
         cout << "[ENCONTRADA]\n";
         t->mostrar();
+        return true;
     } else {
         cout << "[ERROR] No existe transaccion con ID '" << id << "'.\n";
+        return false;
     }
     cout << "--------------------------------\n";
+}
+
+void registrarTransaccion(hashTable& hash, string id, string cuenta, string cli, string tip,
+                double mon, string fec, string hor, string est ){
+    if(buscarPorID(hash, id) == true){
+        cout << "[ERROR] La transaccion con ID '" << id << "' ya existe.\n";
+        return;
+    }
+    else{
+        Transaccion* t = new Transaccion(id, cuenta, cli, tip, mon, fec, hor, est);
+        hash.insert(t);
+        cout << "[SUCCESS!] Se registro la transaccion correctamente. \n";
+        t->mostrar();
+    }
 }
 
 void EliminarPorID(hashTable& hash, RedBlackTree& arbol, const string& id){
@@ -542,11 +558,17 @@ int main() {
     buscarPorID(hash, "TX-010000");   // ultima transaccion
     buscarPorID(hash, "TX-030000");   // ID inexistente
 
+    cout << "====================================================\n"
+         << " ESCENARIO 5: Prueba de insercion individual\n"
+         << "====================================================\n";
+    registrarTransaccion(hash, "TX-030001","001-11000", "Valentina Mora", "Transferencia", 2344.56,"2026-10-21","08:10:15","Pendiente");
+    buscarPorID(hash, "TX-030001");
+
     cout << "========================================\n"
          << " ESCENARIO 7: Eliminacion\n"
          << "========================================\n";
 
-    EliminarPorID(hash, arbol, "TX-000001");//Eliminar primera transacción
+    EliminarPorID(hash, arbol, "TX-000001");//Eliminar primera transacciï¿½n
 
     return 0;
 }
