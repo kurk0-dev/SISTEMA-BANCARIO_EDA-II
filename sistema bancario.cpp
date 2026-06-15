@@ -258,6 +258,22 @@ private:
         inorden(nodo->derecha);
     }
 
+    //Consulta por rango de fecha "chef"
+    void consulRanFech(RBNode* nodo, const string& fechaInicio, const string& fechaFin) {
+        if (nodo == nullptr) return;
+        if (nodo->dato->fechaHoraOrden >= fechaInicio) {
+            consulRanFech(nodo->izquierda, fechaInicio, fechaFin);
+        }
+        if (nodo->dato->fechaHoraOrden >= fechaInicio && nodo->dato->fechaHoraOrden <= fechaFin) {
+            cout << nodo->dato->fechaHoraOrden
+                 << " | " << nodo->dato->idTransaccion
+                 << " | " << (nodo->color == ROJO ? "R" : "N") << "\n";
+        }
+        if (nodo->dato->fechaHoraOrden <= fechaFin) {
+            consulRanFech(nodo->derecha, fechaInicio, fechaFin);
+        }
+    }
+
     int contarNodos(RBNode* nodo) {
         if (nodo == nullptr) return 0;
         return 1 + contarNodos(nodo->izquierda) + contarNodos(nodo->derecha);
@@ -434,6 +450,10 @@ public:
     void mostrarInorden() { inorden(raiz); }
     int  totalNodos()     { return contarNodos(raiz); }
 
+    void consultaPorRangoDeFechas(const string& fechaInicio, const string& fechaFin) {
+        consulRanFech(raiz, fechaInicio, fechaFin);
+    }
+
     //Eliminar por id del arbol
     bool eliminar(const string& id) {
         RBNode* nodo = buscarNodo(raiz, id);
@@ -539,6 +559,11 @@ void EliminarPorID(hashTable& hash, RedBlackTree& arbol, const string& id){
     cout << "Total de nodos en RBT despues: " << arbol.totalNodos() << "\n";
 }
 
+void consulPorRangoDeFechas(RedBlackTree& arbol, const string& fechaInicio, const string& fechaFin){
+    cout << "\n--- Consultando transacciones entre " << fechaInicio << " y " << fechaFin << " ---\n";
+    arbol.consultaPorRangoDeFechas(fechaInicio, fechaFin);
+}
+
 int main() {
 
     hashTable    hash(30011);   // primo cercano a 10,000
@@ -569,6 +594,11 @@ int main() {
          << "========================================\n";
 
     EliminarPorID(hash, arbol, "TX-000001");//Eliminar primera transacci�n
+
+    cout << "========================================\n"
+         << " ESCENARIO 8: Consulta por rango de fechas\n"
+         << "========================================\n";
+    consulPorRangoDeFechas(arbol, "2026-01-01 00:00:00", "2026-06-30 23:59:59");
 
     return 0;
 }
