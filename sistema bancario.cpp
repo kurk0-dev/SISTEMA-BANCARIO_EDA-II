@@ -258,6 +258,23 @@ private:
         inorden(nodo->derecha);
     }
 
+    // Recorrido inorden (cronologico) que se detiene al alcanzar el limite.
+    // 'mostrados' lleva la cuenta por referencia para poder cortar la recursion.
+    void inordenLimitado(RBNode* nodo, int limite, int& mostrados) {
+        if (nodo == nullptr || mostrados >= limite) return;
+        inordenLimitado(nodo->izquierda, limite, mostrados);
+        if (mostrados >= limite) return;          // ya se completaron las N
+        mostrados++;
+        cout << "  [" << mostrados << "] "
+             << nodo->dato->fechaHoraOrden
+             << " | " << nodo->dato->idTransaccion
+             << " | " << nodo->dato->cliente
+             << " | " << nodo->dato->tipo
+             << " | " << nodo->dato->monto
+             << " | " << nodo->dato->estado << "\n";
+        inordenLimitado(nodo->derecha, limite, mostrados);
+    }
+
     //Consulta por rango de fecha "chef"
     void consulRanFech(RBNode* nodo, const string& fechaInicio, const string& fechaFin) {
         if (nodo == nullptr) return;
@@ -454,6 +471,20 @@ public:
         consulRanFech(raiz, fechaInicio, fechaFin);
     }
 
+    // Consulta ordenada por fecha y hora: muestra solo las primeras 'limite'
+    // transacciones (20 por defecto) usando el recorrido inorden del arbol.
+    void consultarPorFechaHora(int limite = 20) {
+        cout << "\n--- Transacciones ordenadas por fecha y hora (primeras "
+             << limite << " de " << totalNodos() << ") ---\n";
+        if (raiz == nullptr) {
+            cout << "  [VACIO] No hay transacciones registradas.\n";
+            return;
+        }
+        int mostrados = 0;
+        inordenLimitado(raiz, limite, mostrados);
+        cout << "----------------------------------------------------------\n";
+    }
+
     //Eliminar por id del arbol
     bool eliminar(const string& id) {
         RBNode* nodo = buscarNodo(raiz, id);
@@ -582,6 +613,11 @@ int main() {
     buscarPorID(hash, "TX-005000");   // transaccion intermedia
     buscarPorID(hash, "TX-010000");   // ultima transaccion
     buscarPorID(hash, "TX-030000");   // ID inexistente
+
+    cout << "====================================================\n"
+         << " ESCENARIO 6: Consulta ordenada por fecha y hora\n"
+         << "====================================================\n";
+    arbol.consultarPorFechaHora(20);   // primeras 20 (usar 50 si se desea)
 
     cout << "====================================================\n"
          << " ESCENARIO 5: Prueba de insercion individual\n"
