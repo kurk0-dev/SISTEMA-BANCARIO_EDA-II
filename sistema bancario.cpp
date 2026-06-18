@@ -258,8 +258,6 @@ private:
         inorden(nodo->derecha);
     }
 
-    // Recorrido inorden (cronologico) que se detiene al alcanzar el limite.
-    // 'mostrados' lleva la cuenta por referencia para poder cortar la recursion.
     void inordenLimitado(RBNode* nodo, int limite, int& mostrados) {
         if (nodo == nullptr || mostrados >= limite) return;
         inordenLimitado(nodo->izquierda, limite, mostrados);
@@ -570,6 +568,7 @@ void registrarTransaccion(hashTable& hash, string id, string cuenta, string cli,
     else{
         Transaccion* t = new Transaccion(id, cuenta, cli, tip, mon, fec, hor, est);
         hash.insert(t);
+        RedBlackTree().insertar(t);
         cout << "[SUCCESS!] Se registro la transaccion correctamente. \n";
         t->mostrar();
     }
@@ -615,7 +614,7 @@ int main() {
     buscarPorID(hash, "TX-030000");   // ID inexistente
 
     cout << "====================================================\n"
-         << " ESCENARIO 6: Consulta ordenada por fecha y hora\n"
+         << " ESCENARIO 3: Consulta ordenada por fecha y hora\n"
          << "====================================================\n";
     arbol.consultarPorFechaHora(20);   // primeras 20 (usar 50 si se desea)
 
@@ -626,13 +625,13 @@ int main() {
     buscarPorID(hash, "TX-030001");
 
     cout << "========================================\n"
-         << " ESCENARIO 7: Eliminacion\n"
+         << " ESCENARIO 6: (Falta Actualizacion) Eliminacion\n"
          << "========================================\n";
 
     EliminarPorID(hash, arbol, "TX-000001");//Eliminar primera transacci�n
 
     cout << "========================================\n"
-         << " ESCENARIO 8: Consulta por rango de fechas\n"
+         << " ESCENARIO 4 : Consulta por rango de fechas\n"
          << "========================================\n";
     consulPorRangoDeFechas(arbol, "2026-01-01 00:00:00", "2026-06-30 23:59:59");
 
