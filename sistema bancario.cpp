@@ -2,6 +2,7 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <iomanip>
 using namespace std;
 
 struct Transaccion {
@@ -42,85 +43,117 @@ struct Transaccion {
     }
 };
 
-class Node {
-private:
-    Transaccion* value;
-    Node* next;
-public:
-    Node(Transaccion* t) { value = t; next = nullptr; }
-    void setNext(Node* tmp) {next  = tmp;}
-    Node* getNext() {return next;}
-    Transaccion* getValue() {return value;}
+// Estructura para guardar clave-valor
+struct Registro {
+    string clave;
+    int cantidad;
 };
+// Contenedor de registros (por tipo de transaccion y por estado de transaccion)
+struct ContenedorRegistros {
+    Registro* datos;
+    int tamanio;
+    int capacidad;
 
-class linkedList {
-private:
-    Node* head;
-public:
-    linkedList() { head = nullptr; }
-
-    void insert(Transaccion* t) {
-        Node* nodito = new Node(t);
-        if (head == nullptr) { head = nodito; return; }
-        Node* tmp = head;
-        while (tmp->getNext() != nullptr) tmp = tmp->getNext();
-        tmp->setNext(nodito);
+    ContenedorRegistros() {
+        capacidad = 10;  // Inicia con 10 espacios
+        datos = new Registro[capacidad];
+        tamanio = 0;
     }
 
-    // Busca por idTransaccion � recorre la cadena del bucket
-    Transaccion* buscar(const string& id) {
-        Node* tmp = head;
-        while (tmp != nullptr) {
-            if (tmp->getValue()->idTransaccion == id)
-                return tmp->getValue();
-            tmp = tmp->getNext();
-        }
-        return nullptr;
+    ~ContenedorRegistros() {
+        delete[] datos;
     }
 
-    void print() {
-        if (head == nullptr) { cout << "Vacio"; }
-        else {
-            Node* tmp = head;
-            while (tmp != nullptr) {
-                cout << tmp->getValue()->idTransaccion << " -> ";
-                tmp = tmp->getNext();
+    // Busca si la clave existe, retorna índice o -1
+    int buscarIndice(const string& clave) {
+        for (int i = 0; i < tamanio; i++) {
+            if (datos[i].clave == clave) {
+                return i;
             }
         }
-        cout << "\n";
+        return -1;
     }
 
-    // Elimina un nodo por idTransaccion
-    bool eliminar(const string& id) {
-        if (head == nullptr) return false;
+    // Incrementa cantidad de una clave
+    void incrementar(const string& clave) {
+        int idx = buscarIndice(clave);
 
-        // Si es el primer nodo
-        if (head->getValue()->idTransaccion == id) {
-            Node* tmp = head;
-            head = head->getNext();
-            delete tmp;
-            return true;
-        }
-
-        // Recorre hasta encontrar el nodo anterior
-        Node* actual = head;
-        while (actual->getNext() != nullptr) {
-            if (actual->getNext()->getValue()->idTransaccion == id) {
-                Node* aEliminar = actual->getNext();
-                actual->setNext(aEliminar->getNext());
-                delete aEliminar;
-                return true;
+        if (idx != -1) {
+            // Clave existe, incrementar
+            datos[idx].cantidad++;
+        } else {
+            // Clave nueva, agregar
+            if (tamanio >= capacidad) {
+                // Expandir array si es necesario
+                capacidad *= 2;
+                Registro* temp = new Registro[capacidad];
+                for (int i = 0; i < tamanio; i++) {
+                    temp[i] = datos[i];
+                }
+                delete[] datos;
+                datos = temp;
             }
-            actual = actual->getNext();
+            datos[tamanio].clave = clave;
+            datos[tamanio].cantidad = 1;
+            tamanio++;
         }
-        return false; // No encontrado
+    }
+};
+
+
+// Nueva estructura para guardar las estadisticas generales
+struct Estadisticas {
+    int TotalTransacciones;
+    double montoTotal;
+    double montoPromedio;
+    double mayorMonto;
+    double menorMonto;
+    Transaccion* trMayor;
+    Transaccion* trMenor;
+
+    ContenedorRegistros porTipo;
+    ContenedorRegistros porEstado;
+
+    void mostrar() const {
+        cout << "\n------------------------------------------\n"
+             << " ESTADISTICAS GENERALES\n"
+             << "--------------------------------------------\n";
+
+        cout <<" Total de transacciones: " << TotalTransacciones << "\n";
+        cout <<" Monto total: $" << fixed << setprecision(2) << montoTotal << "\n";
+        cout <<" Monto promedio: $" << montoPromedio << "\n";
+        cout <<" Mayor monto: $" << mayorMonto << "\n";
+        cout <<" ID: " << trMayor->idTransaccion << " | Cliente: " << trMayor->cliente << "\n";
+        cout <<" Menor monto: $" << menorMonto << "\n";
+        cout <<" ID: " << trMenor->idTransaccion << " | Cliente: " << trMenor->cliente << "\n";
+
+        cout << "\n--- Transacciones por TIPO ---\n";
+        for (int i = 0; i < porTipo.tamanio; i++) {
+            cout << "  " << porTipo.datos[i].clave << ": " << porTipo.datos[i].cantidad << "\n";
+        }
+
+        cout << "\n--- Transacciones por ESTADO ---\n";
+        for (int i = 0; i < porEstado.tamanio; i++) {
+            cout << "  " << porEstado.datos[i].clave << ": " << porEstado.datos[i].cantidad << "\n";
+        }
     }
 
 };
+
+struct Tupla{
+    Transaccion* dato;
+    Tupla* siguiente;
+
+    Tupla(Transaccion* t) : dato(t), siguiente(nullptr) {}
+    void setNext(Tupla* tmp) {siguiente  = tmp;}
+    Tupla* getNext() {return siguiente;}
+    Transaccion* getValue() {return dato;}
+};
+
 
 class hashTable {
 private:
-    linkedList* table;
+    Tupla** table;
     int size;
 
     // Hash para strings:
@@ -132,31 +165,140 @@ private:
     }
 
 public:
-    hashTable(int s) { size = s; table = new linkedList[size]; }
-    ~hashTable()     { delete[] table; }
+    hashTable(int s) { size = s; table = new Tupla*[size];
+        for (int i=0;i<size;i++){
+            table[i] = nullptr;
+        }
+        }
+
+    ~hashTable() {
+        for (int i = 0; i < size; i++) {
+            Tupla* actual = table[i];
+            while (actual != nullptr) {
+                Tupla* temp = actual;
+                actual = actual->siguiente;
+                delete temp; //Libera cada tupla
+            }
+        }
+        delete[] table;
+    }
 
     void insert(Transaccion* t) {
         int pos = hashFunction(t->idTransaccion);
-        table[pos].insert(t);
+        Tupla* nueva = new Tupla(t);
+        // Insertar al inicio del bucket (más eficiente que al final)
+        nueva->siguiente = table[pos];
+        table[pos] = nueva;
     }
 
     Transaccion* buscar(const string& id) {
         int pos = hashFunction(id);
-        return table[pos].buscar(id);
+        Tupla* actual = table[pos];
+
+        while (actual != nullptr) {
+            if (actual->dato->idTransaccion == id)
+                return actual->dato;
+            actual = actual->siguiente;
+        }
+        return nullptr;
     }
 
     void print() {
         for (int i = 0; i < size; i++) {
             cout << "Indice " << i << ": ";
-            table[i].print();
+            Tupla* actual = table[i];
+            if (actual == nullptr) {
+                cout << "Vacio";
+            } else {
+                while (actual != nullptr) {
+                    cout << actual->dato->idTransaccion << " -> ";
+                    actual = actual->siguiente;
+                }
+            }
+            cout << "\n";
         }
     }
 
-    //Calcula el �ndice hash del ID y manda a realizar la eliminaci�n a la lista enlazada del bucket
+    // Calcula el indice hash del ID y manda a realizar la eliminacion
     bool eliminar(const string& id) {
         int pos = hashFunction(id);
-        return table[pos].eliminar(id);
+        Tupla* actual = table[pos];
+
+        // Si es el primero
+        if (actual != nullptr && actual->dato->idTransaccion == id) {
+            table[pos] = actual->siguiente;
+            delete actual;
+            return true;
+        }
+
+        // Buscar en el resto
+        while (actual != nullptr) {
+            if (actual->siguiente != nullptr &&
+                actual->siguiente->dato->idTransaccion == id) {
+                Tupla* aEliminar = actual->siguiente;
+                actual->siguiente = aEliminar->siguiente;
+                delete aEliminar;
+                return true;
+            }
+            actual = actual->siguiente;
+        }
+        return false;
     }
+
+    //Devuelve estadisticas generales del sistema de transaccion
+    Estadisticas calcularEstadisticas(){
+        Estadisticas stats;
+
+        stats.TotalTransacciones = 0;
+        stats.montoTotal = 0;
+        stats.montoPromedio = 0;
+        stats.mayorMonto = -1;
+        stats.menorMonto = 999999999;
+        stats.trMayor = nullptr;
+        stats.trMenor = nullptr;
+
+        //Recorrer cada bucket
+        for(int i=0; i<size; i++){
+            Tupla* actual = table[i];
+            while(actual != nullptr){
+                Transaccion* t = actual->dato;
+
+                // Contar total de transacciones
+                stats.TotalTransacciones++;
+
+                // Sumar montos de cada transaccion
+                stats.montoTotal += t->monto;
+
+                // Obtencion del mayor monto
+                if(t->monto > stats.mayorMonto){
+                    stats.mayorMonto = t->monto;
+                    stats.trMayor = t;
+                }
+
+                //Obtencion del menor monto
+                if(t->monto < stats.menorMonto){
+                    stats.menorMonto = t->monto;
+                    stats.trMenor = t;
+                }
+
+                //Contar por tipo
+                stats.porTipo.incrementar(t->tipo);
+
+                //Contar por estado
+                stats.porEstado.incrementar(t->estado);
+
+                actual = actual->getNext();
+            }
+        }
+
+        // Calcular promedio
+        if(stats.TotalTransacciones>0){
+            stats.montoPromedio = stats.montoTotal/stats.TotalTransacciones;
+        }
+
+        return stats;
+    }
+
 };
 
 enum Color { ROJO, NEGRO };
@@ -294,7 +436,7 @@ private:
         return 1 + contarNodos(nodo->izquierda) + contarNodos(nodo->derecha);
     }
 
-    //Eliminaci n
+    //Eliminacion
     // Busca el nodo con el ID
     RBNode* buscarNodo(RBNode* nodo, const string& id) {
         if (nodo == nullptr) return nullptr;
@@ -305,14 +447,14 @@ private:
         return buscarNodo(nodo->derecha, id);
     }
 
-    // Encuentra el sucesor inorden (nodo m nimo del sub rbol derecho)
+    // Encuentra el sucesor inorden (nodo minimo del sub arbol derecho)
     RBNode* minimo(RBNode* nodo) {
         while (nodo->izquierda != nullptr)
             nodo = nodo->izquierda;
         return nodo;
     }
 
-    // Reemplaza un sub rbol
+    // Reemplaza un subarbol
     void trasplantar(RBNode*& raiz, RBNode* u, RBNode* v) {
         if (u->padre == nullptr)
             raiz = v;
@@ -325,7 +467,7 @@ private:
             v->padre = u->padre;
     }
 
-    // Arregla violaciones de color despu�s de eliminar
+    // Arregla violaciones de color despues de eliminar
     void fixEliminacion(RBNode*& raiz, RBNode* nodo) {
         while (nodo != raiz && color(nodo) == NEGRO) {
             if (nodo == nodo->padre->izquierda) {
@@ -399,7 +541,7 @@ private:
         if (nodo != nullptr) nodo->color = NEGRO;
     }
 
-    // Funci�n auxiliar para obtener el color de un nodo (nullptr es NEGRO)
+    // Funcion auxiliar para obtener el color de un nodo (nullptr es NEGRO)
     Color color(RBNode* nodo) {
         return (nodo == nullptr) ? NEGRO : nodo->color;
     }
@@ -447,7 +589,7 @@ private:
 
         delete nodo;
 
-        // Rebalancear si se elimin� un nodo negro
+        // Rebalancear si se elimina un nodo negro
         if (colorOriginal == NEGRO && nodoAArreglar != nullptr) {
             fixEliminacion(raiz, nodoAArreglar);
         }
@@ -594,6 +736,7 @@ void consulPorRangoDeFechas(RedBlackTree& arbol, const string& fechaInicio, cons
     arbol.consultaPorRangoDeFechas(fechaInicio, fechaFin);
 }
 
+
 int main() {
 
     hashTable    hash(30011);   // primo cercano a 10,000
@@ -608,32 +751,39 @@ int main() {
          << " ESCENARIO 2: Busqueda por ID\n"
          << "========================================\n";
 
-    buscarPorID(hash, "TX-000001");   // primera transaccion
+    /*buscarPorID(hash, "TX-000001");   // primera transaccion
     buscarPorID(hash, "TX-005000");   // transaccion intermedia
     buscarPorID(hash, "TX-010000");   // ultima transaccion
-    buscarPorID(hash, "TX-030000");   // ID inexistente
+    buscarPorID(hash, "TX-030000");   // ID inexistente*/
 
     cout << "====================================================\n"
          << " ESCENARIO 3: Consulta ordenada por fecha y hora\n"
          << "====================================================\n";
-    arbol.consultarPorFechaHora(20);   // primeras 20 (usar 50 si se desea)
-
-    cout << "====================================================\n"
-         << " ESCENARIO 5: Prueba de insercion individual\n"
-         << "====================================================\n";
-    registrarTransaccion(hash, "TX-030001","001-11000", "Valentina Mora", "Transferencia", 2344.56,"2026-10-21","08:10:15","Pendiente");
-    buscarPorID(hash, "TX-030001");
-
-    cout << "========================================\n"
-         << " ESCENARIO 6: (Falta Actualizacion) Eliminacion\n"
-         << "========================================\n";
-
-    EliminarPorID(hash, arbol, "TX-000001");//Eliminar primera transacci�n
+    //arbol.consultarPorFechaHora(20);   // primeras 20 (usar 50 si se desea)
 
     cout << "========================================\n"
          << " ESCENARIO 4 : Consulta por rango de fechas\n"
          << "========================================\n";
-    consulPorRangoDeFechas(arbol, "2026-01-01 00:00:00", "2026-06-30 23:59:59");
+    //consulPorRangoDeFechas(arbol, "2026-01-01 00:00:00", "2026-06-30 23:59:59");
+
+    cout << "====================================================\n"
+         << " ESCENARIO 5: Prueba de insercion individual\n"
+         << "====================================================\n";
+    //registrarTransaccion(hash, "TX-030001","001-11000", "Valentina Mora", "Transferencia", 2344.56,"2026-10-21","08:10:15","Pendiente");
+    //buscarPorID(hash, "TX-030001");
+
+    cout << "========================================\n"
+         << " ESCENARIO 6: Eliminacion\n"
+         << "========================================\n";
+
+    //EliminarPorID(hash, arbol, "TX-000001");//Eliminar primera transaccion
+
+    cout << "========================================\n"
+         << " ESCENARIO 6: Estadisticas generales\n"
+         << "========================================\n";
+
+    Estadisticas stats = hash.calcularEstadisticas();
+    stats.mostrar();
 
     return 0;
 }
