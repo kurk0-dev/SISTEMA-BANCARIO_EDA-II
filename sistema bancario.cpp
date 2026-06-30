@@ -868,14 +868,29 @@ int main() {
   cout << "========================================\n"
        << " ESCENARIO 5 : Consulta por rango de fechas\n"
        << "========================================\n";
-  consulPorRangoDeFechas(arbol, "2026-01-01 00:00:00", "2026-06-30 23:59:59",1000);
+  
+  cout << "\n[Prueba A] Rango de 1 semana (ej. 1 al 7 de febrero):\n";
+  consulPorRangoDeFechas(arbol, "2026-02-01 00:00:00", "2026-02-07 23:59:59");
+
+  cout << "\n[Prueba B] Rango de 1 mes (ej. todo marzo):\n";
+  consulPorRangoDeFechas(arbol, "2026-03-01 00:00:00", "2026-03-31 23:59:59");
+
+  cout << "\n[Prueba C] Rango sin resultados (año futuro):\n";
+  consulPorRangoDeFechas(arbol, "2028-01-01 00:00:00", "2028-01-31 23:59:59");
 
   cout << "========================================================\n"
        << " ESCENARIO 6: Actualizacion de estado de transaccion\n"
        << "========================================================\n";
-  // actualizarEstado(hash, "TX-000001", "Anulada");      // caso exitoso
-  // actualizarEstado(hash, "TX-000001", "Invalido");     // estado no valido
-  // actualizarEstado(hash, "TX-999999", "Aprobada");     // ID inexistente
+  actualizarEstado(hash, "TX-000001", "Anulada");      
+  actualizarEstado(hash, "TX-000010", "Rechazada");
+  actualizarEstado(hash, "TX-000025", "Observada");
+  actualizarEstado(hash, "TX-000100", "Aprobada");
+  actualizarEstado(hash, "TX-000500", "Pendiente");
+  actualizarEstado(hash, "TX-001000", "Anulada");
+  actualizarEstado(hash, "TX-005000", "Aprobada");
+  actualizarEstado(hash, "TX-010000", "Rechazada");
+  actualizarEstado(hash, "TX-020000", "Observada");
+  actualizarEstado(hash, "TX-025000", "Aprobada");
 
   cout << "========================================\n"
        << " ESCENARIO 7: Eliminacion\n"
