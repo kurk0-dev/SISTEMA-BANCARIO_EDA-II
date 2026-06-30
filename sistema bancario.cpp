@@ -1,9 +1,11 @@
+#include <chrono>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
 #include <string>
 using namespace std;
+using namespace std::chrono;
 
 struct Transaccion {
   string idTransaccion;
@@ -435,28 +437,29 @@ private:
 
   // Consulta por rango de fecha "chefcinho"
   void consulRanFech(RBNode *nodo, const string &fechaInicio,
-                     const string &fechaFin, int &totalEncontradas, int limiteMuestra) {
+                     const string &fechaFin, int &totalEncontradas,
+                     int limiteMuestra) {
     if (nodo == nullptr)
       return;
     if (nodo->dato->fechaHoraOrden >= fechaInicio) {
-      consulRanFech(nodo->izquierda, fechaInicio, fechaFin, totalEncontradas, limiteMuestra);
+      consulRanFech(nodo->izquierda, fechaInicio, fechaFin, totalEncontradas,
+                    limiteMuestra);
     }
     if (nodo->dato->fechaHoraOrden >= fechaInicio &&
         nodo->dato->fechaHoraOrden <= fechaFin) {
-      
+
       totalEncontradas++;
-      
+
       if (totalEncontradas <= limiteMuestra) {
-        cout << "  [" << totalEncontradas << "] " << nodo->dato->fechaHoraOrden 
-             << " | " << nodo->dato->idTransaccion 
-             << " | " << nodo->dato->cliente
-             << " | " << nodo->dato->tipo
-             << " | $" << nodo->dato->monto
-             << " | " << nodo->dato->estado << "\n";
+        cout << "  [" << totalEncontradas << "] " << nodo->dato->fechaHoraOrden
+             << " | " << nodo->dato->idTransaccion << " | "
+             << nodo->dato->cliente << " | " << nodo->dato->tipo << " | $"
+             << nodo->dato->monto << " | " << nodo->dato->estado << "\n";
       }
     }
     if (nodo->dato->fechaHoraOrden <= fechaFin) {
-      consulRanFech(nodo->derecha, fechaInicio, fechaFin, totalEncontradas, limiteMuestra);
+      consulRanFech(nodo->derecha, fechaInicio, fechaFin, totalEncontradas,
+                    limiteMuestra);
     }
   }
 
@@ -640,15 +643,19 @@ public:
   void mostrarInorden() { inorden(raiz); }
   int totalNodos() { return contarNodos(raiz); }
 
-  void consultaPorRangoDeFechas(const string &fechaInicio, const string &fechaFin, int limiteMuestra = 20) {
+  void consultaPorRangoDeFechas(const string &fechaInicio,
+                                const string &fechaFin,
+                                int limiteMuestra = 20) {
     int totalEncontradas = 0;
-    cout << "\n  --- Muestra de resultados (max. " << limiteMuestra << ") ---\n";
+    cout << "\n  --- Muestra de resultados (max. " << limiteMuestra
+         << ") ---\n";
     consulRanFech(raiz, fechaInicio, fechaFin, totalEncontradas, limiteMuestra);
     if (totalEncontradas == 0) {
       cout << "  [!] No se encontraron transacciones en este rango.\n";
     } else {
       if (totalEncontradas > limiteMuestra) {
-         cout << "  ... (se omitieron " << (totalEncontradas - limiteMuestra) << " resultados adicionales)\n";
+        cout << "  ... (se omitieron " << (totalEncontradas - limiteMuestra)
+             << " resultados adicionales)\n";
       }
       cout << "\n============================================\n";
       cout << " TOTAL ENCONTRADAS: " << totalEncontradas << " transacciones\n";
@@ -842,62 +849,260 @@ int main() {
   cout << "========================================\n"
        << " ESCENARIO 1: Carga masiva\n"
        << "========================================\n";
+
+  auto inicio = high_resolution_clock::now();
   cargarCSV("transacciones_masivo.csv", hash, arbol);
+  auto fin = high_resolution_clock::now();
+  auto duracion = duration_cast<milliseconds>(fin - inicio);
+  cout << "Tiempo: " << duracion.count() << " milisegundos\n";
 
   cout << "====================================================\n"
        << " ESCENARIO 2: Prueba de insercion individual\n"
        << "====================================================\n";
-  // registrarTransaccion(hash, "TX-030001","001-11000", "Valentina Mora",
-  // "Transferencia", 2344.56,"2026-10-21","08:10:15","Pendiente");
-  // buscarPorID(hash, "TX-030001");
+  /*
+      string nuevoID = "TX-030004";
+      cout << "\n  Insertando transaccion individual (" << nuevoID << ") con
+     30000 registros existentes...\n";
 
+      Transaccion* nueva = new Transaccion(nuevoID, "001-11000", "Valentina
+     Mora", "Transferencia", 2344.56, "2026-10-21", "08:10:15", "Pendiente");
+
+      // Medir insercion en Hash Table
+      auto t1_hash = high_resolution_clock::now();
+      hash.insert(nueva);
+      auto t2_hash = high_resolution_clock::now();
+      auto duracion_hash = duration_cast<nanoseconds>(t2_hash - t1_hash);
+
+      // Medir insercion en Red-Black Tree
+      auto t1_rbt = high_resolution_clock::now();
+      arbol.insertar(nueva);
+      auto t2_rbt = high_resolution_clock::now();
+      auto duracion_rbt = duration_cast<nanoseconds>(t2_rbt - t1_rbt);
+
+      cout << "  > Transaccion insertada correctamente\n"
+           << "  > ID: " << nueva->idTransaccion
+           << " | Cliente: " << nueva->cliente
+           << " | $" << fixed << setprecision(2) << nueva->monto << "\n"
+           << "  Tiempo de insercion en Hash: " << duracion_hash.count() << "
+     nanosegundos\n"
+           << "  Tiempo de insercion en RBT:  " << duracion_rbt.count() << "
+     nanosegundos\n";
+
+      // Verificar que se inserto correctamente
+      Transaccion* verificar = hash.buscar(nuevoID);
+      if (verificar) {
+        cout << "  [OK] Verificacion: transaccion encontrada en Hash despues de
+     insercion\n";
+      }
+      cout << "  Total nodos en RBT: " << arbol.totalNodos() << "\n\n";
+  */
   cout << "========================================\n"
        << " ESCENARIO 3: Busqueda por ID\n"
        << "========================================\n";
 
-  /*buscarPorID(hash, "TX-000001");   // primera transaccion
-  buscarPorID(hash, "TX-005000");   // transaccion intermedia
-  buscarPorID(hash, "TX-010000");   // ultima transaccion
-  buscarPorID(hash, "TX-030000");   // ID inexistente*/
+  // --- Caso 1: Buscar la PRIMERA transaccion ---
+  /*string idBuscar = "TX-000001";
+  cout << "\n  [Caso 1] Buscar PRIMERA transaccion (" << idBuscar << "):\n";
+
+  auto t1 = high_resolution_clock::now();
+  Transaccion* encontrada = hash.buscar(idBuscar);
+  auto t2 = high_resolution_clock::now();
+
+  auto duracion = duration_cast<nanoseconds>(t2 - t1);
+  if (encontrada) {
+    cout << "  > ENCONTRADA: " << encontrada->cliente
+         << " | " << encontrada->tipo
+         << " | $" << fixed << setprecision(2) << encontrada->monto
+         << " | " << encontrada->estado << "\n";
+  } else {
+    cout << "  > NO ENCONTRADA\n";
+  }
+  cout << "  Tiempo de busqueda en Hash: " << duracion.count() << "
+  nanosegundos\n";
+  */
+
+  // --- Caso 2: Buscar una transaccion INTERMEDIA ---
+  /*
+  string idBuscar = "TX-015000";
+  cout << "\n  [Caso 2] Buscar transaccion INTERMEDIA (" << idBuscar << "):\n";
+
+  auto t1 = high_resolution_clock::now();
+  Transaccion* encontrada = hash.buscar(idBuscar);
+  auto t2 = high_resolution_clock::now();
+
+  auto duracion = duration_cast<nanoseconds>(t2 - t1);
+
+  if (encontrada) {
+    cout << "  > ENCONTRADA: " << encontrada->cliente
+         << " | " << encontrada->tipo
+         << " | $" << fixed << setprecision(2) << encontrada->monto
+         << " | " << encontrada->estado << "\n";
+  } else {
+    cout << "  > NO ENCONTRADA\n";
+  }
+  cout << "  Tiempo de busqueda en Hash: " << duracion.count() << "
+  nanosegundos\n";
+  */
+
+  // --- Caso 3: Buscar la ULTIMA transaccion ---
+  /*
+    string idBuscar = "TX-030000";
+    cout << "\n  [Caso 3] Buscar ULTIMA transaccion (" << idBuscar << "):\n";
+
+    auto t1 = high_resolution_clock::now();
+    Transaccion* encontrada = hash.buscar(idBuscar);
+    auto t2 = high_resolution_clock::now();
+
+    auto duracion = duration_cast<nanoseconds>(t2 - t1);
+
+    if (encontrada) {
+      cout << "  > ENCONTRADA: " << encontrada->cliente
+           << " | " << encontrada->tipo
+           << " | $" << fixed << setprecision(2) << encontrada->monto
+           << " | " << encontrada->estado << "\n";
+    } else {
+      cout << "  > NO ENCONTRADA\n";
+    }
+    cout << "  Tiempo de busqueda en Hash: " << duracion.count() << "
+    nanosegundos\n";
+    */
+
+  // --- Caso 4: Buscar un ID INEXISTENTE ---
+  /*
+    string idBuscar = "TX-999999";
+    cout << "\n  [Caso 4] Buscar ID INEXISTENTE (" << idBuscar << "):\n";
+
+    auto t1 = high_resolution_clock::now();
+    Transaccion* encontrada = hash.buscar(idBuscar);
+    auto t2 = high_resolution_clock::now();
+
+    auto duracion = duration_cast<nanoseconds>(t2 - t1);
+
+    if (encontrada) {
+      cout << "  > ENCONTRADA: " << encontrada->cliente
+           << " | " << encontrada->tipo
+           << " | $" << fixed << setprecision(2) << encontrada->monto
+           << " | " << encontrada->estado << "\n";
+    } else {
+      cout << "  > NO ENCONTRADA\n";
+    }
+    cout << "  Tiempo de busqueda en Hash: " << duracion.count() << "
+    nanosegundos\n";
+  */
+
+  cout << "\n";
 
   cout << "====================================================\n"
        << " ESCENARIO 4: Consulta ordenada por fecha y hora\n"
        << "====================================================\n";
-  // arbol.consultarPorFechaHora(20);   // primeras 20 (usar 50 si se desea)
-  
+
+  cout << "  Estructura utilizada: Red-Black Tree (recorrido inorden)\n";
+
+  auto t1 = high_resolution_clock::now();
+  arbol.consultarPorFechaHora(
+      20); // Muestra las primeras 20 transacciones ordenadas
+  auto t2 = high_resolution_clock::now();
+
+  auto duracion_consulta = duration_cast<microseconds>(t2 - t1);
+  cout << "  Tiempo de consulta ordenada (20 primeras): "
+       << duracion_consulta.count() << " microsegundos\n";
+
   cout << "========================================\n"
        << " ESCENARIO 5 : Consulta por rango de fechas\n"
        << "========================================\n";
-  
-  cout << "\n[Prueba A] Rango de 1 semana (ej. 1 al 7 de febrero):\n";
-  consulPorRangoDeFechas(arbol, "2026-02-01 00:00:00", "2026-02-07 23:59:59");
+  /*
 
-  cout << "\n[Prueba B] Rango de 1 mes (ej. todo marzo):\n";
-  consulPorRangoDeFechas(arbol, "2026-03-01 00:00:00", "2026-03-31 23:59:59");
 
-  cout << "\n[Prueba C] Rango sin resultados (año futuro):\n";
-  consulPorRangoDeFechas(arbol, "2028-01-01 00:00:00", "2028-01-31 23:59:59");
+       cout << "  Estructura utilizada: Red-Black Tree (recorrido inorden con
+  filtro)\n";
+
+  // --- Prueba A: Rango de 1 semana ---
+  {
+    cout << "\n  [Prueba A] Rango de 1 semana (1 al 7 de febrero 2026):\n";
+
+    auto t1 = high_resolution_clock::now();
+    consulPorRangoDeFechas(arbol, "2026-02-01 00:00:00", "2026-02-07 23:59:59");
+    auto t2 = high_resolution_clock::now();
+
+    auto duracion = duration_cast<microseconds>(t2 - t1);
+    cout << "  Tiempo de consulta (1 semana): " << duracion.count() << "
+  microsegundos\n";
+  }
+
+  // --- Prueba B: Rango de 1 mes ---
+  {
+    cout << "\n  [Prueba B] Rango de 1 mes (todo marzo 2026):\n";
+
+    auto t1 = high_resolution_clock::now();
+    consulPorRangoDeFechas(arbol, "2026-03-01 00:00:00", "2026-03-31 23:59:59");
+    auto t2 = high_resolution_clock::now();
+
+    auto duracion = duration_cast<microseconds>(t2 - t1);
+    cout << "  Tiempo de consulta (1 mes): " << duracion.count() << "
+  microsegundos\n";
+  }
+
+  // --- Prueba C: Rango sin resultados ---
+  {
+    cout << "\n  [Prueba C] Rango sin resultados (año futuro 2028):\n";
+
+    auto t1 = high_resolution_clock::now();
+    consulPorRangoDeFechas(arbol, "2028-01-01 00:00:00", "2028-01-31 23:59:59");
+    auto t2 = high_resolution_clock::now();
+
+    auto duracion = duration_cast<microseconds>(t2 - t1);
+    cout << "  Tiempo de consulta (sin resultados): " << duracion.count() << "
+  microsegundos\n";
+  }
+*/
 
   cout << "========================================================\n"
        << " ESCENARIO 6: Actualizacion de estado de transaccion\n"
        << "========================================================\n";
-  actualizarEstado(hash, "TX-000001", "Anulada");      
-  actualizarEstado(hash, "TX-000010", "Rechazada");
-  actualizarEstado(hash, "TX-000025", "Observada");
-  actualizarEstado(hash, "TX-000100", "Aprobada");
-  actualizarEstado(hash, "TX-000500", "Pendiente");
-  actualizarEstado(hash, "TX-001000", "Anulada");
-  actualizarEstado(hash, "TX-005000", "Aprobada");
-  actualizarEstado(hash, "TX-010000", "Rechazada");
-  actualizarEstado(hash, "TX-020000", "Observada");
-  actualizarEstado(hash, "TX-025000", "Aprobada");
+  /*
+      auto t1 = high_resolution_clock::now();
+
+      actualizarEstado(hash, "TX-000001", "Anulada");
+      actualizarEstado(hash, "TX-000010", "Rechazada");
+      actualizarEstado(hash, "TX-000025", "Observada");
+      actualizarEstado(hash, "TX-000100", "Aprobada");
+      actualizarEstado(hash, "TX-000500", "Pendiente");
+      actualizarEstado(hash, "TX-001000", "Anulada");
+      actualizarEstado(hash, "TX-005000", "Aprobada");
+      actualizarEstado(hash, "TX-010000", "Rechazada");
+      actualizarEstado(hash, "TX-020000", "Observada");
+      actualizarEstado(hash, "TX-025000", "Aprobada");
+
+      auto t2 = high_resolution_clock::now();
+      auto duracion = duration_cast<microseconds>(t2 - t1);
+      cout << "\n  Tiempo total de 10 actualizaciones: " << duracion.count() <<
+     " microsegundos\n";
+  */
 
   cout << "========================================\n"
        << " ESCENARIO 7: Eliminacion\n"
        << "========================================\n";
+  /*
+    {
+      auto t1 = high_resolution_clock::now();
 
-  // EliminarPorID(hash, arbol, "TX-000001");//Eliminar primera transaccion
+      EliminarPorID(hash, arbol, "TX-000010");
+      EliminarPorID(hash, arbol, "TX-000020");
+      EliminarPorID(hash, arbol, "TX-000030");
+      EliminarPorID(hash, arbol, "TX-000040");
+      EliminarPorID(hash, arbol, "TX-000050");
+      EliminarPorID(hash, arbol, "TX-000060");
+      EliminarPorID(hash, arbol, "TX-000070");
+      EliminarPorID(hash, arbol, "TX-000080");
+      EliminarPorID(hash, arbol, "TX-000090");
+      EliminarPorID(hash, arbol, "TX-000100");
 
+      auto t2 = high_resolution_clock::now();
+      auto duracion = duration_cast<milliseconds>(t2 - t1);
+      cout << "\n  Tiempo total de 10 eliminaciones: " << duracion.count() << "
+    milisegundos\n";
+    }
+  */
   cout << "========================================\n"
        << " ESCENARIO 8: Estadisticas generales\n"
        << "========================================\n";
