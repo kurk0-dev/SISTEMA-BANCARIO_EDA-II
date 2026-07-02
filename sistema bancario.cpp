@@ -849,23 +849,21 @@ int main() {
   cout << "========================================\n"
        << " ESCENARIO 1: Carga masiva\n"
        << "========================================\n";
-
+{
   auto inicio = high_resolution_clock::now();
   cargarCSV("transacciones_masivo.csv", hash, arbol);
   auto fin = high_resolution_clock::now();
   auto duracion = duration_cast<milliseconds>(fin - inicio);
   cout << "Tiempo: " << duracion.count() << " milisegundos\n";
-
+}
   cout << "====================================================\n"
        << " ESCENARIO 2: Prueba de insercion individual\n"
        << "====================================================\n";
-  /*
+/*{  
       string nuevoID = "TX-030004";
-      cout << "\n  Insertando transaccion individual (" << nuevoID << ") con
-     30000 registros existentes...\n";
+      cout << "\n  Insertando transaccion individual (" << nuevoID << ") con 30000 registros existentes...\n";
 
-      Transaccion* nueva = new Transaccion(nuevoID, "001-11000", "Valentina
-     Mora", "Transferencia", 2344.56, "2026-10-21", "08:10:15", "Pendiente");
+      Transaccion* nueva = new Transaccion(nuevoID, "001-11000", "Valentina Mora", "Transferencia", 2344.56, "2026-10-21", "08:10:15", "Pendiente");
 
       // Medir insercion en Hash Table
       auto t1_hash = high_resolution_clock::now();
@@ -883,25 +881,24 @@ int main() {
            << "  > ID: " << nueva->idTransaccion
            << " | Cliente: " << nueva->cliente
            << " | $" << fixed << setprecision(2) << nueva->monto << "\n"
-           << "  Tiempo de insercion en Hash: " << duracion_hash.count() << "
-     nanosegundos\n"
-           << "  Tiempo de insercion en RBT:  " << duracion_rbt.count() << "
-     nanosegundos\n";
+           << "  Tiempo de insercion en Hash: " << duracion_hash.count() << " nanosegundos\n"
+           << "  Tiempo de insercion en RBT:  " << duracion_rbt.count() << " nanosegundos\n";
 
       // Verificar que se inserto correctamente
       Transaccion* verificar = hash.buscar(nuevoID);
       if (verificar) {
-        cout << "  [OK] Verificacion: transaccion encontrada en Hash despues de
-     insercion\n";
+        cout << "  [OK] Verificacion: transaccion encontrada en Hash despues de insercion\n";
       }
       cout << "  Total nodos en RBT: " << arbol.totalNodos() << "\n\n";
-  */
+}
+*/
   cout << "========================================\n"
        << " ESCENARIO 3: Busqueda por ID\n"
        << "========================================\n";
-
+/*
   // --- Caso 1: Buscar la PRIMERA transaccion ---
-  /*string idBuscar = "TX-000001";
+  {
+  string idBuscar = "TX-000001";
   cout << "\n  [Caso 1] Buscar PRIMERA transaccion (" << idBuscar << "):\n";
 
   auto t1 = high_resolution_clock::now();
@@ -914,15 +911,14 @@ int main() {
          << " | " << encontrada->tipo
          << " | $" << fixed << setprecision(2) << encontrada->monto
          << " | " << encontrada->estado << "\n";
-  } else {
+  } 
+  else {
     cout << "  > NO ENCONTRADA\n";
   }
-  cout << "  Tiempo de busqueda en Hash: " << duracion.count() << "
-  nanosegundos\n";
-  */
-
+  cout << "  Tiempo de busqueda en Hash: " << duracion.count() << " nanosegundos\n";
+  }
   // --- Caso 2: Buscar una transaccion INTERMEDIA ---
-  /*
+  {
   string idBuscar = "TX-015000";
   cout << "\n  [Caso 2] Buscar transaccion INTERMEDIA (" << idBuscar << "):\n";
 
@@ -940,12 +936,10 @@ int main() {
   } else {
     cout << "  > NO ENCONTRADA\n";
   }
-  cout << "  Tiempo de busqueda en Hash: " << duracion.count() << "
-  nanosegundos\n";
-  */
-
+  cout << "  Tiempo de busqueda en Hash: " << duracion.count() << " nanosegundos\n";
+  }
   // --- Caso 3: Buscar la ULTIMA transaccion ---
-  /*
+  {
     string idBuscar = "TX-030000";
     cout << "\n  [Caso 3] Buscar ULTIMA transaccion (" << idBuscar << "):\n";
 
@@ -963,12 +957,10 @@ int main() {
     } else {
       cout << "  > NO ENCONTRADA\n";
     }
-    cout << "  Tiempo de busqueda en Hash: " << duracion.count() << "
-    nanosegundos\n";
-    */
-
+    cout << "  Tiempo de busqueda en Hash: " << duracion.count() << " nanosegundos\n";
+  }
   // --- Caso 4: Buscar un ID INEXISTENTE ---
-  /*
+  {
     string idBuscar = "TX-999999";
     cout << "\n  [Caso 4] Buscar ID INEXISTENTE (" << idBuscar << "):\n";
 
@@ -986,16 +978,14 @@ int main() {
     } else {
       cout << "  > NO ENCONTRADA\n";
     }
-    cout << "  Tiempo de busqueda en Hash: " << duracion.count() << "
-    nanosegundos\n";
-  */
-
+    cout << "  Tiempo de busqueda en Hash: " << duracion.count() << " nanosegundos\n";
   cout << "\n";
-
+  }
+*/
   cout << "====================================================\n"
        << " ESCENARIO 4: Consulta ordenada por fecha y hora\n"
        << "====================================================\n";
-
+/*{
   cout << "  Estructura utilizada: Red-Black Tree (recorrido inorden)\n";
 
   auto t1 = high_resolution_clock::now();
@@ -1006,15 +996,12 @@ int main() {
   auto duracion_consulta = duration_cast<microseconds>(t2 - t1);
   cout << "  Tiempo de consulta ordenada (20 primeras): "
        << duracion_consulta.count() << " microsegundos\n";
-
+  }*/
   cout << "========================================\n"
        << " ESCENARIO 5 : Consulta por rango de fechas\n"
        << "========================================\n";
-  /*
-
-
-       cout << "  Estructura utilizada: Red-Black Tree (recorrido inorden con
-  filtro)\n";
+/*{
+       cout << "  Estructura utilizada: Red-Black Tree (recorrido inorden con filtro)\n";
 
   // --- Prueba A: Rango de 1 semana ---
   {
@@ -1025,8 +1012,7 @@ int main() {
     auto t2 = high_resolution_clock::now();
 
     auto duracion = duration_cast<microseconds>(t2 - t1);
-    cout << "  Tiempo de consulta (1 semana): " << duracion.count() << "
-  microsegundos\n";
+    cout << "  Tiempo de consulta (1 semana): " << duracion.count() << " microsegundos\n";
   }
 
   // --- Prueba B: Rango de 1 mes ---
@@ -1038,8 +1024,7 @@ int main() {
     auto t2 = high_resolution_clock::now();
 
     auto duracion = duration_cast<microseconds>(t2 - t1);
-    cout << "  Tiempo de consulta (1 mes): " << duracion.count() << "
-  microsegundos\n";
+    cout << "  Tiempo de consulta (1 mes): " << duracion.count() << " microsegundos\n";
   }
 
   // --- Prueba C: Rango sin resultados ---
@@ -1051,16 +1036,14 @@ int main() {
     auto t2 = high_resolution_clock::now();
 
     auto duracion = duration_cast<microseconds>(t2 - t1);
-    cout << "  Tiempo de consulta (sin resultados): " << duracion.count() << "
-  microsegundos\n";
+    cout << "  Tiempo de consulta (sin resultados): " << duracion.count() << " microsegundos\n";
   }
+}
 */
-
   cout << "========================================================\n"
        << " ESCENARIO 6: Actualizacion de estado de transaccion\n"
        << "========================================================\n";
-  /*
-      auto t1 = high_resolution_clock::now();
+/*      auto t1 = high_resolution_clock::now();
 
       actualizarEstado(hash, "TX-000001", "Anulada");
       actualizarEstado(hash, "TX-000010", "Rechazada");
@@ -1075,14 +1058,11 @@ int main() {
 
       auto t2 = high_resolution_clock::now();
       auto duracion = duration_cast<microseconds>(t2 - t1);
-      cout << "\n  Tiempo total de 10 actualizaciones: " << duracion.count() <<
-     " microsegundos\n";
-  */
-
+      cout << "\n  Tiempo total de 10 actualizaciones: " << duracion.count() <<" microsegundos\n";
+*/
   cout << "========================================\n"
        << " ESCENARIO 7: Eliminacion\n"
        << "========================================\n";
-  /*
     {
       auto t1 = high_resolution_clock::now();
 
@@ -1099,10 +1079,9 @@ int main() {
 
       auto t2 = high_resolution_clock::now();
       auto duracion = duration_cast<milliseconds>(t2 - t1);
-      cout << "\n  Tiempo total de 10 eliminaciones: " << duracion.count() << "
-    milisegundos\n";
+      cout << "\n  Tiempo total de 10 eliminaciones: " << duracion.count() << " milisegundos\n";
     }
-  */
+
   cout << "========================================\n"
        << " ESCENARIO 8: Estadisticas generales\n"
        << "========================================\n";
